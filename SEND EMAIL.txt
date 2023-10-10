@@ -2,6 +2,7 @@
 
 // SETINGS.PY
 
+-- this is also required for password reset
 
 
 ABOVE STATIC FILES
