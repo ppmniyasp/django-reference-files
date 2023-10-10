@@ -1,0 +1,82 @@
+# LOGIN / LOGOUT / PAGE RESTRICTION / FLASH MESSAGE
+
+# IN VIEWS.PY
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.models import User
+from . models import Profile,Skill
+from . forms import UpdateUserForm
+
+# Create your views here.
+
+def loginProfile(request):
+
+    if request.user.is_authenticated:
+        return redirect('profiles')
+
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        try:
+            user = User.objects.get(username=username)
+
+        except:
+            messages.error(request,'username does not exist..')
+
+
+        # this will check username match the password if it is it return a instance else none
+        user = authenticate(request, username=username, password=password )
+
+        if user is not None:
+            login(request, user)
+            return redirect('profiles')
+        else:
+            messages.error(request,'username or password is incorrect..')
+
+    return render(request, 'user/login-register.html')
+
+def logoutProfile(request):
+    logout(request)
+    messages.error(request,'user was loged out..')
+    return redirect('login')
+
+
+/// add login_required(login_url="name-of-the-pade-u-want-to-redirect") in above every 
+view function that you want to restrict
+
+
+# IN URLS.PY
+
+    path('login/',views.loginProfile, name="login"),
+    path('logout/',views.logoutProfile, name="logout"),
+
+
+# IN LOGIN-REGISTRATION.HTML
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>login/register Profile</title>
+</head>
+<body>
+    <h1>Login</h1>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="text" name="username">
+        <input type="text" name="password">
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>

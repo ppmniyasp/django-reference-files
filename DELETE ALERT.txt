@@ -1,0 +1,35 @@
+# DELETE ALERT
+
+// IN MAIN.HTML (JS SCRIPT)
+
+<script>
+        // This JavaScript code will display a confirmation dialog when the "Delete" button is clicked.
+        // It will ask the user if they are sure they want to delete the message.
+        // If the user clicks "OK," the form will be submitted, and the message will be deleted.
+        // If the user clicks "Cancel," the form submission will be canceled.
+      
+        // Attach a click event handler to the "Delete" buttons
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const confirmed = confirm('Are you sure you want to delete?');
+                if (!confirmed) {
+                    event.preventDefault(); // Cancel the form submission if not confirmed
+                }
+            });
+        });
+      </script>
+
+// IN HTML TEMPLATE
+
+	<form method="post" action="{% url 'delete-project' project.id %}" >
+            {% csrf_token %}
+            <button class="delete-button" type="submit">Delete</button>
+        </form>
+
+// IN VIEWS.PY
+
+def deleteProject(request,pk):
+    project = Projects.objects.get(id = pk)
+    project.delete()
+    return redirect('projects')

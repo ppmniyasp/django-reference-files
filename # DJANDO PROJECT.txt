@@ -1,0 +1,368 @@
+# DJANDO PROJECT
+
+1- START A PROJECT
+
+-> python -m venv dvenv
+-> dvenv\Scripts\activate
+-> pip install django
+-> django-admin startproject sample
+         =>cd sample
+-> python manage.py runserver
+
+// OTHE COMMANDS
+
+-> django-admin startapp app1
+-> python mange.py makemigrations
+-> python manage.py migrate
+-> runserver
+-> createsuperuser
+
+
+
+
+
+2 - VIEWS.PY
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.http import Http404
+from . forms import reviewForm
+
+# VIEW TASK
+
+def ViewTask(request, pk):
+    task = Task.objects.get(id=pk)
+    # days = task.day.all()
+    # type = Type.objects.all()
+    # reviews = task.type_set.all()
+
+    context = {'task_view':task}
+
+    return render(request, 'app1/view_task.html', context)
+
+
+	def base(request):
+    		return render(request,'base.html')
+
+# CREATE TASK
+
+def AddTask(request):
+    if request.method == 'POST':
+        title = request.POST['title']
+        description = request.POST['description']
+        complete = request.POST.get('complete') == 'on'  # Default to False if not provided
+        day_ids = request.POST.getlist('day')  # Get a list of selected day IDs
+
+        # FOR PROFILE PIC
+        profile_pic = request.FILES.get('profile_pic')
+
+        task = Task.objects.create(
+            title=title,
+            description=description,
+            profile_pic = profile_pic,
+            complete=complete
+        )
+
+        # Associate the task with selected days
+        task.day.set(day_ids)
+
+        # Optionally, you can add more logic here like redirecting to a task detail page
+        return redirect('home')
+
+    # Fetch available days to populate the form select field
+    days = Day.objects.all()
+
+    return render(request, 'app1/add_task.html', {'days': days})
+
+# EDIT TASK IN NORMAL FORM
+
+def edit_task(request, pk):
+    task = Task.objects.get(id=pk)
+    associated_days = task.day.all()
+
+    if request.method == 'POST':
+        title = request.POST['title']
+        description = request.POST['description']
+        profile_pic = request.FILES.get('profile_pic')
+        complete = request.POST.get('complete') == 'on'
+        day_ids = request.POST.getlist('day')
+
+
+        task.title = title
+        task.description = description
+        task.profile_pic = profile_pic
+        task.complete = complete
+        task.day.set(day_ids)
+        task.save()
+
+        return redirect('home')
+
+    days = Day.objects.all()
+    context = {'task_view': task, 'days': days, 'associated_days': associated_days}
+    return render(request, 'app1/edit_task.html', context)
+
+
+# DELETE TASK IN NORMAL FORM
+
+def delete_task(request, pk):
+    try:
+        task = Task.objects.get(id=pk)
+    except Task.DoesNotExist:
+        raise Http404("Task does not exist")
+
+    if request.method == 'POST':
+        task.delete()
+        return redirect('home')
+
+    context = {'task_view': task}
+    return render(request, 'app1/delete_task.html', context)
+
+
+# ADD , DELETE, EDIT IN MODEL FORM
+
+
+def add_review(request,pk):
+    tasks = Task.objects.get(id=pk)
+    # reviw = tasks.type_set.all()
+    if request.method == 'POST':
+        form = reviewForm(request.POST)
+        if form.is_valid():
+            # Associate the review with the task
+            review = form.save(commit=False)
+            review.tasks = tasks
+            form.save()
+            return redirect('home')  # Redirect to a course list view
+    else:
+        initial_data = {'task': tasks} 
+        form = reviewForm(initial=initial_data)
+    return render(request, 'app1/add_review.html', {'form': form})
+
+def edit_review(request,pk, view_id):
+    reviw = Type.objects.get(id=pk)
+    if request.method == 'POST':
+        form = reviewForm(request.POST,instance=reviw)
+        if form.is_valid():
+            form.save()
+            return redirect('View-task',view_id)  # Redirect to a course list view
+    else:
+        form = reviewForm(instance=reviw)
+    return render(request, 'app1/edit_review.html', {'form': form})
+
+def delete_review(request,pk):
+    reviw = Type.objects.get(id=pk)
+    if request.method == 'POST':
+        reviw.delete()
+        return redirect('home')  # Redirect to a course list view
+    return render(request, 'app1/delete_review.html', {'reviws': reviw})
+
+
+
+
+
+
+
+
+3- URLS.PY
+
+-> MAIN APP
+
+	from django.contrib import admin
+	from django.urls import path,include
+	from app1 import views
+
+
+	urlpatterns = [
+ 	   path('admin/', admin.site.urls),
+ 	   path('',include("app1.urls")),
+	]
+
+-> SUB APPS
+
+from django.urls import path
+from . import views
+
+
+urlpatterns = [
+    path('',views.base,),
+    path('create/',views.create,name='create'),
+    path('edit/',views.edit,name='edit'),
+]
+
+// ADD URL  : <li><a href="{% url 'create' TASK.ID1 TASK.ID %}">create</a></li> // WE CAN PASS MANY ARGUMENTS IN URL
+
+
+
+
+
+
+4- HTML TAGS
+
+-> INCLUDE TAG
+
+{% include 'base.html' %}
+
+-> TEMPLATE INHERITANCE
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+// write html content here
+
+{% endblock content %}
+
+-> FOR LOOP
+
+<h1>TODO LIST</h1>
+<table>
+    <tr>
+        <th>Item</th>
+    </tr>
+    {% for tasks in Task %}
+    <tr>
+        <td>{{ tasks.title }}</td>
+    </tr>
+    {% empty %}
+    <h1>no content exist</h1>
+    {% endfor %}
+</table>
+
+## CHECK CONDITIONAL TAGS AND FILTER TAGS IN DJANDO WEBSITE
+
+
+
+
+
+
+5 - MODELS.PV
+
+from django.db import models
+import uuid
+
+
+# Create your models here.
+
+class Task(models.Model):
+    title = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True , blank=True)
+    profile_pic = models.ImageField(null=True,blank=True)
+    day = models.ManyToManyField('Day')
+    complete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+    def __str__(self):
+        return self.title
+    
+
+
+    @property
+    def imageURL(self):
+        try:
+            img = self.profile_pic.url  // FOR STATIC FILES NOT SHOW AN ERROR IF THERE IS NO FILE
+        except:
+            img = ''
+        return img
+
+
+
+    class Meta:
+        ordering = ['complete']
+
+class Type(models.Model):
+    TYPE = (
+        ('up','up'),
+        ('down','down'),
+        
+    )
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
+    body = models.TextField(null=True, blank=True)
+    value = models.CharField(max_length=50, choices=TYPE)
+
+
+    def __str__(self):
+        return self.body
+
+class Day(models.Model):
+    day = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+    def __str__(self):
+        return self.day
+
+
+
+
+
+
+6- ADMIN.PY
+
+from django.contrib import admin
+from . models import Task
+
+# Register your models here.
+
+admin.site.register(Task)
+
+
+
+
+
+
+7- EXCLUDE FILEDS
+
+def edit(request):
+    my_contacts = Contact.objects.all().exclude(email='', phone_number='')
+    return render(request, 'edit.html', {'contacts': my_contacts})
+
+
+
+
+
+
+8 - FORMS.PY
+
+
+from django import forms
+from .models import Student, Course
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+        widgets = {
+            'courses': forms.CheckboxSelectMultiple,      
+        }
+
+
+
+//  SETTINGS  //
+
+import os
+
+DIR = [os.path.join(BASE_DIR,'templates')]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

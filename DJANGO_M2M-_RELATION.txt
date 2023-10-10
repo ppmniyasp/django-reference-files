@@ -1,0 +1,21 @@
+# Create some courses
+course_math = Course.objects.create(name='Math')
+course_physics = Course.objects.create(name='Physics')
+course_chemistry = Course.objects.create(name='Chemistry')
+
+# Create some students and enroll them in courses
+student1 = Student.objects.create(name='Alice')
+student1.courses.add(course_math, course_physics)  # Enroll Alice in Math and Physics
+
+student2 = Student.objects.create(name='Bob')
+student2.courses.add(course_math, course_chemistry)  # Enroll Bob in Math and Chemistry
+
+# Retrieve students enrolled in a specific course
+physics_students = course_physics.student_set.all()  # Get students enrolled in Physics
+chemistry_students = course_chemistry.student_set.all()  # Get students enrolled in Chemistry
+
+# Retrieve courses a specific student is enrolled in
+alice_courses = student1.courses.all()  # Get courses Alice is enrolled in
+
+# You can also remove a student from a course if needed
+student1.courses.remove(course_physics)  # Remove Alice from Physics

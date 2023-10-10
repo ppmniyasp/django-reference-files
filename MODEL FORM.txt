@@ -1,0 +1,92 @@
+# MODEL FORM
+
+from django.forms import ModelForm
+from . models import Profile,Skill
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+class UpdateUserForm(ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['name','email','username','headline','bio','profile_img','social_github','social_twitter','social_linkedin','social_website','social_youtube',]
+
+
+
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model=User
+        fields = ['first_name','username','email','password1','password2'] 
+        labels = {
+            'first_name': 'Name'
+        }
+
+
+class SkillForm(ModelForm):
+    class Meta:
+        model = Skill
+        fields = '__all__'
+        exclude = ['owner']
+
+
+
+class DateInput(forms.DateInput):
+    input_type = 'date'
+
+class AddBooksForm(forms.ModelForm):
+    class Meta:
+        model = Books
+        fields = '__all__'
+        widgets = {
+            'types': forms.CheckboxSelectMultiple, 
+            'released':DateInput(),     
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(AddBooksForm, self).__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            if name != 'types':
+                field.widget.attrs.update({'class': 'input'})
+
+
+
+#  HTML PAGE
+
+
+<main class="formPage my-xl">
+    <div class="content-box">
+        <div class="formWrapper">
+            <a class="backButton" href="{% url 'user-profile' recipient.id  %}"><i class="im im-angle-left"></i></a>
+            <br>
+
+            <form class="form" method="POST">
+                {% csrf_token %}
+
+                {% if request.user.is_authenticated == False %}
+                <div class="form__field">
+                    <label for="formInput#text">{{form.name.label}}</label>
+                    {{form.name}}
+                </div>
+
+                <div class="form__field">
+                    <label for="formInput#text">{{form.email.label}}</label>
+                    {{form.email}}
+                </div>
+                {% endif %}
+
+                <div class="form__field">
+                    <label for="formInput#text">{{form.subject.label}}</label>
+                    {{form.subject}}
+                </div>
+
+                <div class="form__field">
+                    <label for="formInput#text">{{form.body.label}}</label>
+                    {{form.body}}
+                </div>
+
+                <input class="btn btn--sub btn--lg  my-md" type="submit" value="Submit" />
+            </form>
+        </div>
+    </div>
+</main>

@@ -1,0 +1,12 @@
+# DATABASE CONFIG
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'devsearch',
+        'USER': 'root',
+        'PASSWORD': '!@#149Niyas',
+
+    }
+}

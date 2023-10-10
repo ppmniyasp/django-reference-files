@@ -1,0 +1,56 @@
+# SIGNALS
+
+/// create a file named signals.py and write this///
+
+
+
+from django.db.models.signals import post_save,post_delete
+from django.dispatch import receiver
+
+from django.contrib.auth.models import User
+from .models import Profile
+
+
+# @receiver(post_save, sender=Profile)
+
+def createProfile(sender, instance, created, **kwargs):
+    # print('instance',instance)
+    # print('create',created)
+    if created:
+        user = instance
+        profile = Profile.objects.create(
+            user = user,
+            username = user.username,
+            email = user.email,
+            name = user.first_name
+
+
+        )
+
+def deleteUser(sender, instance, **kwargs):
+    user = instance.user
+    user.delete()
+
+
+post_save.connect(createProfile, sender=User)
+post_delete.connect(deleteUser, sender=Profile)
+
+
+
+
+/// add this in apps.py ///
+
+
+
+from django.apps import AppConfig
+
+
+class UserConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'user'
+
+    def ready(self):
+        import user.signals
+
+
+

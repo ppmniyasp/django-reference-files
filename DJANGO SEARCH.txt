@@ -1,0 +1,48 @@
+# DJANGO SEARCH
+
+// IN UTILS.PY
+
+from .models import Projects, Tags
+from django.db.models import Q
+
+def searchProjects(request):
+    search_query = ''
+
+    if request.GET.get('search_query'):
+        search_query = request.GET.get('search_query')
+
+    tags = Tags.objects.filter(name__icontains=search_query)
+
+    projects = Projects.objects.distinct().filter(
+        Q(title__icontains=search_query) |
+        Q(description__icontains=search_query) |
+        Q(owner__first_name__icontains=search_query) |
+        Q(tag__in=tags)
+    )
+
+    return projects, search_query
+
+
+// IN VIEW
+
+
+def display_Projects(request):
+    projects,search_query = searchProjects(request)
+
+    context = {'projects':projects,'search_query':search_query}
+    return render(request,'projects/display_projects.html',context)
+	// DONT FORGET TO IMPORT THE FUNCTION TO VIEW
+
+
+// IN HTML
+
+
+  <form action="{% url 'projects' %}" method="get">
+        <div>
+            <label for="serch">Search Devolepers</label>
+            <input type="text" id="serch" placeholder="serch for devolepers..." name="search_query" value="{{search_query}}">
+        </div>
+        <input type="submit" value="Search">
+    </form>
+
+	//ADD THE VALUE AS SERCH_QUERY

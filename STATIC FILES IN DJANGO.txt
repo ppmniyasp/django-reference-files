@@ -1,0 +1,108 @@
+## TO JUST SHOW THE PICTURE ##
+
+# SETTINGS.PY
+
+STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+# IN HTML PAGE
+
+{% load static %}
+
+<img style="max-width: 200px;" src="{% static 'images/1674021699035.jpeg' %}" alt="">
+
+
+
+## FOR DINAMIC STATIC FILE ##
+
+# SETTINGS.PY
+
+STATIC_URL = 'static/'
+MEDIA_URL = '/images/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+MEDIA_ROOT = BASE_DIR / 'static/images'
+
+# MAIN URLS.PY
+
+from django.contrib import admin
+from django.urls import path, include
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('',include('app1.url')),
+    path('',include('m2m_field.url')),
+]
+
+
+urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT) <----------------------------
+
+# IN HTML PAGE
+
+// write like this
+
+<img style="max-width: 250px;" src="{{ task_view.profile_pic.url }}" >
+
+// or if u add the @property in inside the class Task(....) in models.py like this
+
+class Task(models.Model):
+    title = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True , blank=True)
+    profile_pic = models.ImageField(null=True,blank=True)
+    day = models.ManyToManyField('Day')
+    complete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+    def __str__(self):
+        return self.title
+    
+    @property
+    def imageURL(self):
+        try:
+            img = self.profile_pic.url <--------------------
+        except:
+            img = ''
+        return img
+
+    class Meta:
+        ordering = ['complete']
+
+// add it like this
+
+<img style="max-width: 250px;" src="{{ task_view.imageURL }}" >
+
+// and also in form tag
+
+<form method="post" action="{% url 'add-task' %}" enctype="multipart/form-data">
+
+
+# IN VIEWS.PY
+
+// in normal form take the field like this
+
+profile_pic = request.FILES.get('profile_pic')
+
+// in model form add a argument in form object like this // add it in edit and add view.py
+
+def edit_review(request,pk, view_id):
+    reviw = Type.objects.get(id=pk)
+    if request.method == 'POST':
+        form = reviewForm(request.POST,request.FILES, instance=reviw)
+        if form.is_valid():
+            form.save()
+            return redirect('View-task',view_id)  # Redirect to a course list view
+    else:
+        form = reviewForm(instance=reviw)
+    return render(request, 'app1/edit_review.html', {'form': form})

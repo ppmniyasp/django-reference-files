@@ -1,0 +1,98 @@
+# USER REGISTRATION
+
+# IN VIEWS.PY
+
+def registerProfile(request):
+    page = 'register'
+    form = RegisterForm()
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False) # WE PUT HOLED THE SAVE METHOD TO MAKE SOME CHANGES IN FORM DATA(USERNAME TO LOWER)
+            user.username = user.username.lower()
+            user.save()
+
+            messages.success(request, 'User account was created')
+
+            login(request,user)
+            return redirect('profiles')
+
+        else:
+            messages.error(request,'An error has occurred during registration..')
+
+
+    
+
+
+    context = {}
+
+    return render(request, 'user/login-register.html',{'page':page, 'form':form})
+
+
+# IN FORMS.PY
+
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model=User
+        fields = ['first_name','username','email','password1','password2'] 
+        labels = {
+            'first_name': 'Name'
+        }
+
+# IN HTML PAGE
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>login/register Profile</title>
+</head>
+<body>
+    
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+
+    {% if page == 'register' %}
+
+    <h2>Sign Up</h2>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{form.as_p}}
+        <input type="submit" value="Register">
+    </form>
+    <p>Already have an account <a href="{% url 'login' %}">Login</a></p>
+
+    {% else %}
+
+    <h1>Login</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="text" name="username">
+        <input type="text" name="password">
+        <button type="submit">Login</button>
+
+        <p>Don't have an account <a href="{% url 'register' %}">Sign up</a></p>
+    </form>
+
+    {% endif %}
+</body>
+</html>
+
+
+# IN URL
+
+
+path('register-page/',views.registerProfile, name="register"),
+
+

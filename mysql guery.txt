@@ -1,0 +1,65 @@
+# CREATE TABLE
+
+-> create table student(id int primary key auto_increment,name varchar(100) not null,age int(10),place varchar(100))
+
+# INSERT VALUES
+
+-> insert into table values(1,"niyas",21,"cherur"),(...);
+
+# LIKE
+
+-> select * from student where name like "a%"
+
+# LIMIT
+
+-> select * from student limit 2;
+
+# DISTINCT KEY WORD
+
+-> select distinct age from student;(it remove dublicate)
+
+# ORDER BY(asc or dsc)
+
+-> select * from student order by age asc
+
+# GROUP BY
+
+-> select age,avg(salary) as avg_salary from  customwer group by age;
+
+# MIN(),MAX(),COUNT(),AVG()
+
+-> select min(age) from  student;
+
+# BETWEEN
+
+-> select age from student where age between 20 and 23;
+
+# ALTER
+
+-> alter table customer add PLACE varchar(20) AFTER AGE;(OR FIRST)
+-> alter table customer add PLACE varchar(20);
+-> alter table customer add PLACE varchar(20) AFTER AGE,-> alter table customer add COUNTRY varchar(20) FIRST AGE;
+
+# FOREIGN KEY
+
+-> create table products(customer_id int,name varchar(100),foreign key(customer_id) references customer(id));
+
+# UPDATE
+
+-> UPDATE CUSTOMER SET COUNTRY = "UK",AGE = 20 WHERE ID = 1;
+-> UPDATE CUSTOMER SET NAME = REPLACE(NAME,"amal","ARJUN");
+
+# RIGHT JOIN
+
+-> select * from std_mark right join stud on std_mark.id=stud.id;
+
+# CROSS JOIN
+
+-> select * from meals cross join drinks;
+
+# NATURAL JOIN
+
+-> select * from stud natural join std_mark;
+
+# NESTED QUERY
+
